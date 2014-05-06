@@ -6,6 +6,10 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
 )
 
+find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+include(${QT_USE_FILE})
+add_definitions(-DQT_NO_KEYWORDS)
+
 # catkin_python_setup()
 
 catkin_package()
@@ -16,7 +20,21 @@ catkin_package()
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${QT_INCLUDES}
 )
+
+qt4_wrap_cpp(MOC_FILES
+  src/robot_editor.h
+)
+
+set(SOURCE_FILES
+  src/main.cpp
+  src/robot_editor.cpp
+  ${MOC_FILES}
+)
+
+add_executable(robot_editor ${SOURCE_FILES})
+target_link_libraries(robot_editor ${QT_LIBRARIES} ${catkin_LIBRARIES})
 
 #############
 ## Install ##
