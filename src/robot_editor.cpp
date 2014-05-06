@@ -27,9 +27,9 @@ RobotEditor::RobotEditor(QWidget* parent) :
 	grid_ = manager_->createDisplay("rviz/Grid", "adjustable grid", true);
 	ROS_ASSERT(grid_ != NULL);
 
-	// configure the GridDisplay the way we like
-	grid_->subProp("Line Style")->setValue("Billboards");
-	grid_->subProp("Color")->setValue(Qt::yellow);
+	// Create a robot model display
+	robot_model_ = manager_->createDisplay("rviz/RobotModel", "Robot Preview", true);
+	ROS_ASSERT(robot_model_ != NULL);
 }
 
 RobotEditor::~RobotEditor()
