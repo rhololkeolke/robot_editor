@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <ros/ros.h>
 #include "robot_editor.h"
+#include <ui_main_window.h>
 
 int main(int argc, char** argv)
 {
@@ -11,11 +12,12 @@ int main(int argc, char** argv)
 
 	QApplication app(argc, argv);
 
-	RobotEditor* editor = new RobotEditor();
-	editor->show();
+	QMainWindow *main_window = new QMainWindow;
+	Ui::MainWindow ui;
+	ui.setupUi(main_window);
 
-	app.exec();
-
-	delete editor;
+	RobotEditor* editor = new RobotEditor(ui.rvizFrame);//ui.rvizDisplay);
+	main_window->show();
 	
+	return app.exec();
 }

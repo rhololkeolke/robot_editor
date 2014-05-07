@@ -21,16 +21,19 @@ catkin_package()
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${QT_INCLUDES}
+  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 qt4_wrap_cpp(MOC_FILES
   src/robot_editor.h
 )
+qt4_wrap_ui(main_window_HEADERS ui/main_window.ui)
 
 set(SOURCE_FILES
   src/main.cpp
   src/robot_editor.cpp
   ${MOC_FILES}
+  ${main_window_HEADERS}
 )
 
 add_executable(robot_editor ${SOURCE_FILES})
