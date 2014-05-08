@@ -6,11 +6,15 @@
 
 #include "robot_editor.h"
 
+#include <cstdlib>
+
 RobotEditor::RobotEditor(QWidget* parent) :
 	QWidget(parent)
 {
 	// construct and lay out render panel
 	render_panel_ = new rviz::RenderPanel();
+	render_panel_->setMinimumWidth(parent->width());
+	render_panel_->setMinimumHeight(520);
 	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(render_panel_);
 

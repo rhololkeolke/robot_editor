@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	Ui::MainWindow ui;
 	ui.setupUi(main_window);
 
-	RobotEditor* editor = new RobotEditor(ui.rvizFrame);//ui.rvizDisplay);
+	RobotEditor* editor = new RobotEditor(ui.rvizFrame);
 	main_window->show();
 	
 	return app.exec();
