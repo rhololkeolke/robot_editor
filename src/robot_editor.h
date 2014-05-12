@@ -17,6 +17,13 @@ public:
   RobotEditor(QWidget* parent = 0);
   virtual ~RobotEditor();
 
+public Q_SLOTS:
+	void openTrigger();
+	void saveTrigger();
+	void saveAsTrigger();
+	void exitTrigger();
+	  
+  
 private:
 	rviz::VisualizationManager* manager_;
 	rviz::RenderPanel* render_panel_;

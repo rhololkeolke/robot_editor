@@ -40,3 +40,19 @@ RobotEditor::~RobotEditor()
 {
 	delete manager_;
 }
+
+void RobotEditor::openTrigger() {
+	printf("Open selected\n");
+}
+
+void RobotEditor::saveTrigger() {
+	printf("Save selected\n");
+}
+
+void RobotEditor::saveAsTrigger() {
+	printf("Save as selected\n");
+}
+
+void RobotEditor::exitTrigger() {
+	printf("Exit selected\n");
+}
