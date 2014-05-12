@@ -26,12 +26,14 @@ include_directories(
 
 qt4_wrap_cpp(MOC_FILES
   src/robot_editor.h
+  src/robot_preview.h
 )
 qt4_wrap_ui(main_window_HEADERS ui/main_window.ui)
 
 set(SOURCE_FILES
   src/main.cpp
   src/robot_editor.cpp
+  src/robot_preview.cpp
   ${MOC_FILES}
   ${main_window_HEADERS}
 )

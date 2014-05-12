@@ -1,21 +1,18 @@
 #ifndef ROBOT_EDITOR_ROBOT_EDITOR_H_
 #define ROBOT_EDITOR_ROBOT_EDITOR_H_
 
-#include <QWidget>
+#include <QObject>
+#include <ui_main_window.h>
 
-namespace rviz
-{
-	class Display;
-	class RenderPanel;
-	class VisualizationManager;
-}
+class QMainWindow;
+class RobotPreview;
 
-class RobotEditor: public QWidget
+class RobotEditor : public QObject
 {
 Q_OBJECT
 public:
-  RobotEditor(QWidget* parent = 0);
-  virtual ~RobotEditor();
+	RobotEditor(QMainWindow* main_window);
+	~RobotEditor();
 
 public Q_SLOTS:
 	void openTrigger();
@@ -25,10 +22,8 @@ public Q_SLOTS:
 	  
   
 private:
-	rviz::VisualizationManager* manager_;
-	rviz::RenderPanel* render_panel_;
-	rviz::Display* grid_;
-	rviz::Display* robot_model_;
+	Ui::MainWindow main_window_ui_;
+	RobotPreview* robot_preview_;
 };
 
 #endif

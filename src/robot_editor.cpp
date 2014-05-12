@@ -1,44 +1,23 @@
-#include <QVBoxLayout>
-
-#include <rviz/visualization_manager.h>
-#include <rviz/render_panel.h>
-#include <rviz/display.h>
-
 #include "robot_editor.h"
+#include "robot_preview.h"
+
 
 #include <cstdlib>
 
-RobotEditor::RobotEditor(QWidget* parent) :
-	QWidget(parent)
+RobotEditor::RobotEditor(QMainWindow *main_window)
 {
-	// construct and lay out render panel
-	render_panel_ = new rviz::RenderPanel();
-	render_panel_->setMinimumWidth(parent->width());
-	render_panel_->setMinimumHeight(520);
-	QVBoxLayout* main_layout = new QVBoxLayout;
-	main_layout->addWidget(render_panel_);
+	main_window_ui_.setupUi(main_window);
+	robot_preview_ = new RobotPreview(main_window_ui_.rvizFrame);
 
-	// set the top-level layout for this widget
-	setLayout(main_layout);
-
-	// initialize the main RViz Classes
-	manager_ = new rviz::VisualizationManager(render_panel_);
-	render_panel_->initialize(manager_->getSceneManager(), manager_);
-	manager_->initialize();
-	manager_->startUpdate();
-
-	// Create a grid display
-	grid_ = manager_->createDisplay("rviz/Grid", "adjustable grid", true);
-	ROS_ASSERT(grid_ != NULL);
-
-	// Create a robot model display
-	robot_model_ = manager_->createDisplay("rviz/RobotModel", "Robot Preview", true);
-	ROS_ASSERT(robot_model_ != NULL);
+	QObject::connect(main_window_ui_.actionExit, SIGNAL(triggered()), this, SLOT(exitTrigger()));
+	QObject::connect(main_window_ui_.actionOpen, SIGNAL(triggered()), this, SLOT(openTrigger()));
+	QObject::connect(main_window_ui_.actionSave, SIGNAL(triggered()), this, SLOT(saveTrigger()));
+	QObject::connect(main_window_ui_.actionSave_As, SIGNAL(triggered()), this, SLOT(saveAsTrigger()));
 }
 
 RobotEditor::~RobotEditor()
 {
-	delete manager_;
+	delete robot_preview_;
 }
 
 void RobotEditor::openTrigger() {

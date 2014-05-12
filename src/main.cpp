@@ -13,17 +13,14 @@ int main(int argc, char** argv)
 	QApplication app(argc, argv);
 
 	QMainWindow *main_window = new QMainWindow;
-	Ui::MainWindow ui;
-	ui.setupUi(main_window);
+	RobotEditor* robot_editor = new RobotEditor(main_window);
 
-	RobotEditor* editor = new RobotEditor(ui.rvizFrame);
-
-	QObject::connect(ui.actionExit, SIGNAL(triggered()), editor, SLOT(exitTrigger()));
-	QObject::connect(ui.actionOpen, SIGNAL(triggered()), editor, SLOT(openTrigger()));
-	QObject::connect(ui.actionSave, SIGNAL(triggered()), editor, SLOT(saveTrigger()));
-	QObject::connect(ui.actionSave_As, SIGNAL(triggered()), editor, SLOT(saveAsTrigger()));
-	
 	main_window->show();
 	
-	return app.exec();
+	int result = app.exec();
+
+	delete robot_editor;
+	delete main_window;
+
+	return result;
 }
