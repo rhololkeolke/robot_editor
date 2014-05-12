@@ -12,12 +12,8 @@ int main(int argc, char** argv)
 
 	QApplication app(argc, argv);
 
-	RobotEditor* robot_editor = new RobotEditor();
-	robot_editor->show();
+	RobotEditor robot_editor;
+	robot_editor.show();
 
-	int result = app.exec();
-
-	delete robot_editor;
-
-	return result;
+	return app.exec();
 }
