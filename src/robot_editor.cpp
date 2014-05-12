@@ -38,5 +38,6 @@ void RobotEditor::saveAsTrigger() {
 }
 
 void RobotEditor::exitTrigger() {
-	printf("Exit selected\n");
+	// quit the application
+	exit(0);
 }
