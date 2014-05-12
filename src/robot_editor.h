@@ -11,18 +11,20 @@ class RobotEditor : public QObject
 {
 Q_OBJECT
 public:
-	RobotEditor(QMainWindow* main_window);
+	RobotEditor();
 	~RobotEditor();
+
+    void show();
 
 public Q_SLOTS:
 	void openTrigger();
 	void saveTrigger();
 	void saveAsTrigger();
 	void exitTrigger();
-	  
   
 private:
-	Ui::MainWindow main_window_ui_;
+    QMainWindow main_window_;
+Ui::MainWindow main_window_ui_;
 	RobotPreview* robot_preview_;
 };
 

@@ -4,9 +4,9 @@
 
 #include <cstdlib>
 
-RobotEditor::RobotEditor(QMainWindow *main_window)
+RobotEditor::RobotEditor()
 {
-	main_window_ui_.setupUi(main_window);
+	main_window_ui_.setupUi(&main_window_);
 	robot_preview_ = new RobotPreview(main_window_ui_.rvizFrame);
 
 	QObject::connect(main_window_ui_.actionExit, SIGNAL(triggered()), this, SLOT(exitTrigger()));
@@ -18,6 +18,11 @@ RobotEditor::RobotEditor(QMainWindow *main_window)
 RobotEditor::~RobotEditor()
 {
 	delete robot_preview_;
+}
+
+void RobotEditor::show()
+{
+	main_window_.show();
 }
 
 void RobotEditor::openTrigger() {
