@@ -21,11 +21,13 @@ public Q_SLOTS:
 	void saveTrigger();
 	void saveAsTrigger();
 	void exitTrigger();
-  
+
 private:
     QMainWindow main_window_;
-Ui::MainWindow main_window_ui_;
+	Ui::MainWindow main_window_ui_;
 	RobotPreview* robot_preview_;
+
+	QString file_name_;
 };
 
 #endif

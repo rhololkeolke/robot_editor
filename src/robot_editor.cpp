@@ -29,22 +29,45 @@ void RobotEditor::show()
 }
 
 void RobotEditor::openTrigger() {
-	QString file_name = QFileDialog::getOpenFileName(0, tr("Open URDF File"), "~", tr("XML Files (*.xml)"));
+	file_name_ = QFileDialog::getOpenFileName(0, tr("Open URDF File"), ".", tr("XML Files (*.xml)"));
 
-	printf("file selected: %s\n", qPrintable(file_name));
+	// this will be true if the user cancels
+	if(file_name_.isEmpty())
+		return;
 
-	std::ifstream selected_file(file_name.toStdString().c_str());
+	// debugging print for now
+	printf("file selected: %s\n", qPrintable(file_name_));
+
+	// convert the file to a string
+	std::ifstream selected_file(file_name_.toStdString().c_str());
 	std::string file_contents((std::istreambuf_iterator<char>(selected_file)), std::istreambuf_iterator<char>());
 
+	// fill the text editor with this string
 	main_window_ui_.xmlEdit->setText(QString::fromStdString(file_contents));
 }
 
 void RobotEditor::saveTrigger() {
-	printf("Save selected\n");
+	if(file_name_.isEmpty())
+	{
+		printf("Calling save as\n");
+		this->saveAsTrigger();
+		return;
+	}
+
+	std::ofstream output_file(file_name_.toStdString().c_str());
+	output_file << main_window_ui_.xmlEdit->toPlainText().toStdString();
 }
 
 void RobotEditor::saveAsTrigger() {
 	printf("Save as selected\n");
+	file_name_ = QFileDialog::getSaveFileName(0, tr("Save As..."),
+											  ".", tr("XML (*.xml)"));
+
+	if(file_name_.isEmpty())
+		return; // user canceled
+
+	std::ofstream output_file(file_name_.toStdString().c_str());
+	output_file << main_window_ui_.xmlEdit->toPlainText().toStdString();
 }
 
 void RobotEditor::exitTrigger() {
