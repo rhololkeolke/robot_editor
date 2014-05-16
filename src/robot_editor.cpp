@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <fstream>
 
+#include <XmlRpcValue.h>
+
 RobotEditor::RobotEditor()
 {
 	main_window_ui_.setupUi(&main_window_);
@@ -44,6 +46,9 @@ void RobotEditor::openTrigger() {
 
 	// fill the text editor with this string
 	main_window_ui_.xmlEdit->setText(QString::fromStdString(file_contents));
+
+	// also set the rosparam
+	this->updateParams(file_contents);
 }
 
 void RobotEditor::saveTrigger() {
@@ -55,7 +60,11 @@ void RobotEditor::saveTrigger() {
 	}
 
 	std::ofstream output_file(file_name_.toStdString().c_str());
-	output_file << main_window_ui_.xmlEdit->toPlainText().toStdString();
+	std::string file_contents = main_window_ui_.xmlEdit->toPlainText().toStdString();
+	output_file << file_contents;
+
+	// update the rosparam
+	this->updateParams(file_contents);
 }
 
 void RobotEditor::saveAsTrigger() {
@@ -67,10 +76,20 @@ void RobotEditor::saveAsTrigger() {
 		return; // user canceled
 
 	std::ofstream output_file(file_name_.toStdString().c_str());
-	output_file << main_window_ui_.xmlEdit->toPlainText().toStdString();
+	std::string file_contents = main_window_ui_.xmlEdit->toPlainText().toStdString();
+	output_file << file_contents;
+
+	// update the rosparam
+	this->updateParams(file_contents);
 }
 
 void RobotEditor::exitTrigger() {
 	// quit the application
 	exit(0);
+}
+
+void RobotEditor::updateParams(const std::string& urdf)
+{
+	XmlRpc::XmlRpcValue robot_description(urdf);
+	nh_.setParam("robot_editor/robot_description", robot_description);
 }

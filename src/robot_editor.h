@@ -4,6 +4,9 @@
 #include <QObject>
 #include <ui_main_window.h>
 
+#include <ros/ros.h>
+#include <string>
+
 class QMainWindow;
 class RobotPreview;
 
@@ -23,11 +26,16 @@ public Q_SLOTS:
 	void exitTrigger();
 
 private:
+	void updateParams(const std::string& urdf);
+	
+private:
     QMainWindow main_window_;
 	Ui::MainWindow main_window_ui_;
 	RobotPreview* robot_preview_;
 
 	QString file_name_;
+
+	ros::NodeHandle nh_;
 };
 
 #endif
