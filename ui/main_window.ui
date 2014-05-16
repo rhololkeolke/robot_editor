@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QPlainTextEdit" name="xmlEdit"/>
+     <widget class="QTextEdit" name="xmlEdit"/>
     </item>
     <item>
      <widget class="QFrame" name="rvizFrame">

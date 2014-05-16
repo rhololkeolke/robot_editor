@@ -1,8 +1,11 @@
 #include "robot_editor.h"
 #include "robot_preview.h"
 
+#include <QFileDialog>
+#include <QString>
 
 #include <cstdlib>
+#include <fstream>
 
 RobotEditor::RobotEditor()
 {
@@ -26,7 +29,14 @@ void RobotEditor::show()
 }
 
 void RobotEditor::openTrigger() {
-	printf("Open selected\n");
+	QString file_name = QFileDialog::getOpenFileName(0, tr("Open URDF File"), "~", tr("XML Files (*.xml)"));
+
+	printf("file selected: %s\n", qPrintable(file_name));
+
+	std::ifstream selected_file(file_name.toStdString().c_str());
+	std::string file_contents((std::istreambuf_iterator<char>(selected_file)), std::istreambuf_iterator<char>());
+
+	main_window_ui_.xmlEdit->setText(QString::fromStdString(file_contents));
 }
 
 void RobotEditor::saveTrigger() {
