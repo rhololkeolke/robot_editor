@@ -30,14 +30,22 @@ RobotPreview::RobotPreview(QWidget* parent) :
 	ROS_ASSERT(grid_ != NULL);
 
 	// create a robot model display
-	robot_model_ = manager_->createDisplay("rviz/RobotModel", "Robot Model", true);
-	ROS_ASSERT(robot_model_ != NULL);
-
-	robot_model_->subProp("TF Prefix")->setValue("robot_editor");
-	robot_model_->subProp("Robot Description")->setValue("robot_editor/robot_description");
+	this->refresh();
 }
 
 RobotPreview::~RobotPreview()
 {
 	delete manager_;
+}
+
+void RobotPreview::refresh()
+{
+	if(robot_model_ != NULL)
+		delete robot_model_;
+
+	robot_model_ = manager_->createDisplay("rviz/RobotModel", "Robot Model", true);
+	ROS_ASSERT(robot_model_ != NULL);
+
+	robot_model_->subProp("TF Prefix")->setValue("robot_editor");
+	robot_model_->subProp("Robot Description")->setValue("robot_editor/robot_description");
 }

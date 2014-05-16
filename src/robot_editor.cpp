@@ -132,6 +132,9 @@ void RobotEditor::publishJointStates(const std::string& urdf)
 		joint_positions[it->second.segment.getJoint().getName()] = 0.0;
 	}
 
+	// refresh the preview
+	robot_preview_->refresh();
+
 	// this is only here for a quick test
 	// need to create a thread for the robot state publisher and send the
 	// tree there for publishing
