@@ -32,6 +32,9 @@ RobotPreview::RobotPreview(QWidget* parent) :
 	// create a robot model display
 	robot_model_ = manager_->createDisplay("rviz/RobotModel", "Robot Model", true);
 	ROS_ASSERT(robot_model_ != NULL);
+
+	robot_model_->subProp("TF Prefix")->setValue("robot_editor");
+	robot_model_->subProp("Robot Description")->setValue("robot_editor/robot_description");
 }
 
 RobotPreview::~RobotPreview()

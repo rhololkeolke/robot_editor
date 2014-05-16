@@ -4,6 +4,9 @@ project(robot_editor)
 find_package(catkin REQUIRED COMPONENTS
   rviz
   urdf
+  tf
+  kdl_parser
+  robot_state_publisher
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)

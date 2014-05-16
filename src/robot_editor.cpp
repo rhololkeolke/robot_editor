@@ -6,8 +6,12 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <map>
 
 #include <XmlRpcValue.h>
+#include <sensor_msgs/JointState.h>
+#include <kdl_parser/kdl_parser.hpp>
+#include <robot_state_publisher/robot_state_publisher.h>
 
 RobotEditor::RobotEditor()
 {
@@ -18,11 +22,16 @@ RobotEditor::RobotEditor()
 	QObject::connect(main_window_ui_.actionOpen, SIGNAL(triggered()), this, SLOT(openTrigger()));
 	QObject::connect(main_window_ui_.actionSave, SIGNAL(triggered()), this, SLOT(saveTrigger()));
 	QObject::connect(main_window_ui_.actionSave_As, SIGNAL(triggered()), this, SLOT(saveAsTrigger()));
+
 }
 
 RobotEditor::~RobotEditor()
 {
 	delete robot_preview_;
+	if(robot_tree_ != NULL)
+		delete robot_tree_;
+	if(robot_state_pub_ != NULL)
+		delete robot_state_pub_;
 }
 
 void RobotEditor::show()
@@ -49,6 +58,9 @@ void RobotEditor::openTrigger() {
 
 	// also set the rosparam
 	this->updateParams(file_contents);
+
+	// publish the joints
+	this->publishJointStates(file_contents);
 }
 
 void RobotEditor::saveTrigger() {
@@ -92,4 +104,41 @@ void RobotEditor::updateParams(const std::string& urdf)
 {
 	XmlRpc::XmlRpcValue robot_description(urdf);
 	nh_.setParam("robot_editor/robot_description", robot_description);
+}
+
+void RobotEditor::publishJointStates(const std::string& urdf)
+{
+	if(robot_tree_ != NULL)
+		delete robot_tree_;
+	if(robot_state_pub_ != NULL)
+		delete robot_state_pub_;
+
+	robot_tree_ = new KDL::Tree();
+	if(!kdl_parser::treeFromString(urdf, *robot_tree_))
+	{
+		ROS_ERROR("Failed to construct KDL tree");
+		return;
+	}
+
+	// create a robot state publisher from the tree
+    robot_state_pub_ = new robot_state_publisher::RobotStatePublisher(*robot_tree_);
+
+	// now create a map with joint name and positions
+	std::map<std::string, double> joint_positions;
+	const std::map<std::string, KDL::TreeElement>& segments = robot_tree_->getSegments();
+	for(std::map<std::string, KDL::TreeElement>::const_iterator it=segments.begin();
+		it != segments.end(); it++)
+	{
+		joint_positions[it->second.segment.getJoint().getName()] = 0.0;
+	}
+
+	// this is only here for a quick test
+	// need to create a thread for the robot state publisher and send the
+	// tree there for publishing
+	ros::Rate loop_rate(10);
+	for(int i=0; i<10; i++)
+	{
+		robot_state_pub_->publishTransforms(joint_positions, ros::Time::now(), "robot_editor");
+		loop_rate.sleep();
+	}
 }

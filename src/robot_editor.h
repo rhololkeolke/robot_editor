@@ -6,9 +6,13 @@
 
 #include <ros/ros.h>
 #include <string>
+#include <tf/transform_broadcaster.h>
+
 
 class QMainWindow;
 class RobotPreview;
+namespace robot_state_publisher { class RobotStatePublisher; }
+namespace KDL { class Tree; }
 
 class RobotEditor : public QObject
 {
@@ -27,6 +31,7 @@ public Q_SLOTS:
 
 private:
 	void updateParams(const std::string& urdf);
+	void publishJointStates(const std::string& urdf);
 	
 private:
     QMainWindow main_window_;
@@ -36,6 +41,9 @@ private:
 	QString file_name_;
 
 	ros::NodeHandle nh_;
+
+	KDL::Tree* robot_tree_ = NULL;
+	robot_state_publisher::RobotStatePublisher* robot_state_pub_ = NULL;
 };
 
 #endif
