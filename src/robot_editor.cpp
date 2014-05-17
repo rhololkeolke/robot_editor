@@ -133,7 +133,7 @@ void RobotEditor::publishJointStates(const std::string& urdf)
 	}
 
 	// refresh the preview
-	robot_preview_->refresh();
+	robot_preview_->refresh("robot_editor/" + robot_tree_->getRootSegment()->first);
 
 	// this is only here for a quick test
 	// need to create a thread for the robot state publisher and send the

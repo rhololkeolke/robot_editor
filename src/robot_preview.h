@@ -17,7 +17,7 @@ public:
 	RobotPreview(QWidget* parent=0);
 	virtual ~RobotPreview();
 
-	void refresh();
+	void refresh(const std::string& fixed_frame = "/map");
 
 private:
 	rviz::VisualizationManager* manager_;

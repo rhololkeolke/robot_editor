@@ -1,4 +1,5 @@
 #include <QHBoxLayout>
+#include <QString>
 
 #include <rviz/visualization_manager.h>
 #include <rviz/render_panel.h>
@@ -38,8 +39,10 @@ RobotPreview::~RobotPreview()
 	delete manager_;
 }
 
-void RobotPreview::refresh()
+void RobotPreview::refresh(const std::string& fixed_frame)
 {
+	manager_->setFixedFrame(QString::fromStdString(fixed_frame));
+	
 	if(robot_model_ != NULL)
 		delete robot_model_;
 
