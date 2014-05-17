@@ -9,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS
   robot_state_publisher
 )
 
+find_package(Boost REQUIRED COMPONENTS thread)
+
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(-DQT_NO_KEYWORDS)
@@ -23,6 +25,7 @@ catkin_package()
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   ${QT_INCLUDES}
   ${CMAKE_CURRENT_BINARY_DIR}
 )
@@ -42,7 +45,7 @@ set(SOURCE_FILES
 )
 
 add_executable(robot_editor ${SOURCE_FILES})
-target_link_libraries(robot_editor ${QT_LIBRARIES} ${catkin_LIBRARIES})
+target_link_libraries(robot_editor ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 #############
 ## Install ##

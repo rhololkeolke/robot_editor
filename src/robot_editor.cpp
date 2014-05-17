@@ -6,7 +6,9 @@
 
 #include <cstdlib>
 #include <fstream>
-#include <map>
+
+#include <boost/thread/thread.hpp>
+#include <boost/bind.hpp>
 
 #include <XmlRpcValue.h>
 #include <sensor_msgs/JointState.h>
@@ -23,11 +25,21 @@ RobotEditor::RobotEditor()
 	QObject::connect(main_window_ui_.actionSave, SIGNAL(triggered()), this, SLOT(saveTrigger()));
 	QObject::connect(main_window_ui_.actionSave_As, SIGNAL(triggered()), this, SLOT(saveAsTrigger()));
 
+	publisher_thread_ = new boost::thread(boost::bind(&RobotEditor::publishJointStates, this));
 }
 
 RobotEditor::~RobotEditor()
 {
 	delete robot_preview_;
+
+	if(publisher_thread_ != NULL)
+	{
+		publisher_thread_->interrupt();
+		publisher_thread_->join();
+
+		delete publisher_thread_;
+	}
+	
 	if(robot_tree_ != NULL)
 		delete robot_tree_;
 	if(robot_state_pub_ != NULL)
@@ -56,11 +68,7 @@ void RobotEditor::openTrigger() {
 	// fill the text editor with this string
 	main_window_ui_.xmlEdit->setText(QString::fromStdString(file_contents));
 
-	// also set the rosparam
-	this->updateParams(file_contents);
-
-	// publish the joints
-	this->publishJointStates(file_contents);
+	this->updateURDF(file_contents);
 }
 
 void RobotEditor::saveTrigger() {
@@ -76,7 +84,7 @@ void RobotEditor::saveTrigger() {
 	output_file << file_contents;
 
 	// update the rosparam
-	this->updateParams(file_contents);
+	this->updateURDF(file_contents);
 }
 
 void RobotEditor::saveAsTrigger() {
@@ -92,7 +100,7 @@ void RobotEditor::saveAsTrigger() {
 	output_file << file_contents;
 
 	// update the rosparam
-	this->updateParams(file_contents);
+	this->updateURDF(file_contents);
 }
 
 void RobotEditor::exitTrigger() {
@@ -100,14 +108,12 @@ void RobotEditor::exitTrigger() {
 	exit(0);
 }
 
-void RobotEditor::updateParams(const std::string& urdf)
+void RobotEditor::updateURDF(const std::string& urdf)
 {
 	XmlRpc::XmlRpcValue robot_description(urdf);
 	nh_.setParam("robot_editor/robot_description", robot_description);
-}
 
-void RobotEditor::publishJointStates(const std::string& urdf)
-{
+	boost::mutex::scoped_lock state_pub_lock(state_pub_mutex_);
 	if(robot_tree_ != NULL)
 		delete robot_tree_;
 	if(robot_state_pub_ != NULL)
@@ -124,24 +130,43 @@ void RobotEditor::publishJointStates(const std::string& urdf)
     robot_state_pub_ = new robot_state_publisher::RobotStatePublisher(*robot_tree_);
 
 	// now create a map with joint name and positions
-	std::map<std::string, double> joint_positions;
+	joint_positions_.clear();
 	const std::map<std::string, KDL::TreeElement>& segments = robot_tree_->getSegments();
 	for(std::map<std::string, KDL::TreeElement>::const_iterator it=segments.begin();
 		it != segments.end(); it++)
 	{
-		joint_positions[it->second.segment.getJoint().getName()] = 0.0;
+		joint_positions_[it->second.segment.getJoint().getName()] = 0.0;
 	}
 
 	// refresh the preview
 	robot_preview_->refresh("robot_editor/" + robot_tree_->getRootSegment()->first);
 
-	// this is only here for a quick test
-	// need to create a thread for the robot state publisher and send the
-	// tree there for publishing
+}
+
+void RobotEditor::publishJointStates()
+{
 	ros::Rate loop_rate(10);
-	for(int i=0; i<10; i++)
+
+	while(true)
 	{
-		robot_state_pub_->publishTransforms(joint_positions, ros::Time::now(), "robot_editor");
+		{ // lock the state publisher objects and run
+			boost::mutex::scoped_lock state_pub_lock(state_pub_mutex_);
+			if(robot_state_pub_ != NULL)
+			{
+			   robot_state_pub_->publishTransforms(joint_positions_, ros::Time::now(), "robot_editor");
+			   robot_state_pub_->publishFixedTransforms("robot_editor");
+			   ROS_INFO_STREAM(joint_positions_.size());
+			   ROS_INFO("Published joint state info");
+			}
+		}
+		try {
+			boost::this_thread::interruption_point();
+		} catch(const boost::thread_interrupted& o) {
+			break; // quit the thread's loop
+		}
+
+
 		loop_rate.sleep();
 	}
+
 }

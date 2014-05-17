@@ -6,13 +6,16 @@
 
 #include <ros/ros.h>
 #include <string>
-#include <tf/transform_broadcaster.h>
+#include <map>
+
+#include <boost/thread/mutex.hpp>
 
 
 class QMainWindow;
 class RobotPreview;
 namespace robot_state_publisher { class RobotStatePublisher; }
 namespace KDL { class Tree; }
+namespace boost { class thread; }
 
 class RobotEditor : public QObject
 {
@@ -30,8 +33,8 @@ public Q_SLOTS:
 	void exitTrigger();
 
 private:
-	void updateParams(const std::string& urdf);
-	void publishJointStates(const std::string& urdf);
+	void updateURDF(const std::string& urdf);
+	void publishJointStates();
 	
 private:
     QMainWindow main_window_;
@@ -42,8 +45,11 @@ private:
 
 	ros::NodeHandle nh_;
 
+	boost::mutex state_pub_mutex_;
 	KDL::Tree* robot_tree_ = NULL;
 	robot_state_publisher::RobotStatePublisher* robot_state_pub_ = NULL;
+	boost::thread* publisher_thread_;
+	std::map<std::string, double> joint_positions_;
 };
 
 #endif
