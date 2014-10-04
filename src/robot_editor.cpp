@@ -3,6 +3,7 @@
 
 #include <QFileDialog>
 #include <QString>
+#include <string>
 
 #include <cstdlib>
 #include <fstream>
@@ -15,6 +16,53 @@
 #include <kdl_parser/kdl_parser.hpp>
 #include <robot_state_publisher/robot_state_publisher.h>
 
+#include <signal.h>
+#include <QtCore/qobjectdefs.h>
+
+#define EVENT_SIZE  ( sizeof (struct inotify_event) )
+#define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+
+RobotEditor::RobotEditor(const std::string filename) :
+    RobotEditor()
+{
+    // this will be true if the user cancels
+    if(filename.compare("") == 0)
+        return;
+
+    // debugging print for now
+    printf("file selected: %s\n", filename.c_str());
+
+    inotify_fd_ = inotify_init(); //1(IN_NONBLOCK);
+    if(inotify_fd_ == -1) {
+        printf("Error setting up inotify\n");
+        return;
+    }
+
+    printf("adding file to watch list\n");
+
+    inotify_wd_ = inotify_add_watch(inotify_fd_, filename.c_str(), IN_MODIFY);
+
+    if(inotify_wd_ == -1) {
+        printf("Error adding file to watch list\n");
+        perror("inotify_add_watch");
+        return;
+    }
+
+    printf("Starting read thread\n");
+    inotify_thread_ = new boost::thread(boost::bind(&RobotEditor::checkForURDFChanges, this));
+
+    // convert the file to a string
+    std::ifstream selected_file(filename.c_str());
+    std::string file_contents((std::istreambuf_iterator<char>(selected_file)), std::istreambuf_iterator<char>());
+
+    // fill the text editor with this string
+    main_window_ui_.xmlEdit->setText(QString::fromStdString(file_contents));
+
+    this->updateURDF(file_contents);
+
+    file_name_ = QString(filename.c_str());
+}
+
 RobotEditor::RobotEditor()
 {
 	main_window_ui_.setupUi(&main_window_);
@@ -24,6 +72,7 @@ RobotEditor::RobotEditor()
 	QObject::connect(main_window_ui_.actionOpen, SIGNAL(triggered()), this, SLOT(openTrigger()));
 	QObject::connect(main_window_ui_.actionSave, SIGNAL(triggered()), this, SLOT(saveTrigger()));
 	QObject::connect(main_window_ui_.actionSave_As, SIGNAL(triggered()), this, SLOT(saveAsTrigger()));
+    QObject::connect(this, SIGNAL(refreshSignal()), this, SLOT(refresh()));
 
 	publisher_thread_ = new boost::thread(boost::bind(&RobotEditor::publishJointStates, this));
 }
@@ -39,16 +88,48 @@ RobotEditor::~RobotEditor()
 
 		delete publisher_thread_;
 	}
-	
+
+    if(inotify_thread_ != NULL)
+    {
+        inotify_thread_->interrupt();
+        raise(SIGUSR1);
+        inotify_thread_->join();
+
+        delete inotify_thread_;
+    }
+
 	if(robot_tree_ != NULL)
 		delete robot_tree_;
 	if(robot_state_pub_ != NULL)
 		delete robot_state_pub_;
+    if(inotify_wd_ != -1) {
+        inotify_rm_watch(inotify_fd_, inotify_wd_);
+        close(inotify_fd_);
+    }
+
 }
 
 void RobotEditor::show()
 {
 	main_window_.show();
+}
+
+void RobotEditor::refresh() {
+    printf("refreshing %s\n", file_name_.toStdString().c_str());
+    if(file_name_.isEmpty())
+        return;
+
+    // debugging print for now
+    printf("file selected: %s\n", qPrintable(file_name_));
+
+    // convert the file to a string
+    std::ifstream selected_file(file_name_.toStdString().c_str());
+    std::string file_contents((std::istreambuf_iterator<char>(selected_file)), std::istreambuf_iterator<char>());
+
+    // fill the text editor with this string
+    main_window_ui_.xmlEdit->setText(QString::fromStdString(file_contents));
+
+    this->updateURDF(file_contents);
 }
 
 void RobotEditor::openTrigger() {
@@ -108,6 +189,30 @@ void RobotEditor::exitTrigger() {
 	exit(0);
 }
 
+void RobotEditor::checkForURDFChanges() {
+
+    ROS_DEBUG("Starting check method\n");
+    fflush(stdout);
+    int length = 0;
+    char buffer[BUF_LEN];
+    while(!boost::this_thread::interruption_requested())
+    {
+        ROS_DEBUG("waiting on read");
+        fflush(stdout);
+        length = read(inotify_fd_, buffer, BUF_LEN);
+        if(length < 0)
+        {
+            perror("read");
+            continue;
+        }
+        else
+        {
+            Q_EMIT refreshSignal();
+        }
+    }
+    ROS_DEBUG("finished read thread");
+}
+
 void RobotEditor::updateURDF(const std::string& urdf)
 {
 	XmlRpc::XmlRpcValue robot_description(urdf);
@@ -155,8 +260,8 @@ void RobotEditor::publishJointStates()
 			{
 			   robot_state_pub_->publishTransforms(joint_positions_, ros::Time::now(), "robot_editor");
 			   robot_state_pub_->publishFixedTransforms("robot_editor");
-			   ROS_INFO_STREAM(joint_positions_.size());
-			   ROS_INFO("Published joint state info");
+			   //ROS_INFO_STREAM(joint_positions_.size());
+			   //ROS_INFO("Published joint state info");
 			}
 		}
 		try {

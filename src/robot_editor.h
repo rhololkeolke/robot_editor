@@ -9,6 +9,7 @@
 #include <map>
 
 #include <boost/thread/mutex.hpp>
+#include <sys/inotify.h>
 
 
 class QMainWindow;
@@ -21,6 +22,7 @@ class RobotEditor : public QObject
 {
 Q_OBJECT
 public:
+    explicit RobotEditor(const std::string filename);
 	RobotEditor();
 	~RobotEditor();
 
@@ -28,11 +30,16 @@ public:
 
 public Q_SLOTS:
 	void openTrigger();
+    void refresh();
 	void saveTrigger();
 	void saveAsTrigger();
 	void exitTrigger();
 
+Q_SIGNALS:
+    void refreshSignal();
+
 private:
+    void checkForURDFChanges();
 	void updateURDF(const std::string& urdf);
 	void publishJointStates();
 	
@@ -50,6 +57,10 @@ private:
 	robot_state_publisher::RobotStatePublisher* robot_state_pub_ = NULL;
 	boost::thread* publisher_thread_;
 	std::map<std::string, double> joint_positions_;
+
+    int inotify_fd_ = -1;
+    int inotify_wd_ = -1;
+    boost::thread* inotify_thread_ = NULL;
 };
 
 #endif

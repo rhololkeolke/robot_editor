@@ -27,8 +27,8 @@ RobotPreview::RobotPreview(QWidget* parent) :
 	manager_->startUpdate();
 
 	// Create a grid display
-	grid_ = manager_->createDisplay("rviz/Grid", "Robot Preview", true);
-	ROS_ASSERT(grid_ != NULL);
+	// grid_ = manager_->createDisplay("rviz/Grid", "Robot Preview", true);
+	// ROS_ASSERT(grid_ != NULL);
 
 	// create a robot model display
 	this->refresh();

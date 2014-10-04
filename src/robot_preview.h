@@ -3,6 +3,7 @@
 
 #include <QWidget>
 
+
 namespace rviz
 {
 	class Display;
@@ -22,7 +23,7 @@ public:
 private:
 	rviz::VisualizationManager* manager_;
 	rviz::RenderPanel* render_panel_;
-	rviz::Display* grid_;
+	//rviz::Display* grid_;
 	rviz::Display* robot_model_ = NULL;
 };
 

@@ -12,8 +12,20 @@ int main(int argc, char** argv)
 
 	QApplication app(argc, argv);
 
-	RobotEditor robot_editor;
-	robot_editor.show();
+    RobotEditor* robot_editor;
+    ros::NodeHandle nh("~");
+    std::string urdf_file = "";
+    if(nh.getParam("urdf_file", urdf_file)) {
+        robot_editor = new RobotEditor(urdf_file);
+    }
+    else
+        robot_editor = new RobotEditor();
 
-	return app.exec();
+	robot_editor->show();
+
+	int return_code = app.exec();
+
+    delete robot_editor;
+
+    return return_code;
 }
